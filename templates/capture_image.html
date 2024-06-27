@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Image</title>
+    <link rel="stylesheet" href="static\capture.css"> <!-- Link to your custom stylesheet -->
+    <style>
+        #video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        video {
+            width: 640px;
+            height: 480px;
+            border: 2px solid rgb(255, 0, 0);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Capture Image</h1>
+        <input type="text" id="name" placeholder="Enter name">
+        <button id="capture" class="btn">Capture</button>
+    </div>
+
+    <div id="video-container">
+        <video id="video" autoplay></video>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            });
+
+        document.getElementById('capture').addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            const name = document.getElementById('name').value;
+            
+            fetch('/save_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `image_data=${encodeURIComponent(dataURL)}&name=${encodeURIComponent(name)}`,
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert('Image captured successfully!');
+                      window.location.href = '/';
+                  }
+              });
+        });
+    </script>
+</body>
+</html>

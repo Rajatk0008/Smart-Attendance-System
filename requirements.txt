@@ -1,0 +1,8 @@
+numpy
+xlrd
+xlwt
+opencv-python
+xlutils
+streamlit
+pandas
+face-recognition

@@ -1,0 +1,16 @@
+<!-- templates/attendance.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Take Attendance</title>
+</head>
+<body>
+    <h1>Take Attendance</h1>
+    <form action="/start_attendance" method="POST">
+        <label for="subject">Enter Subject:</label>
+        <input type="text" id="subject" name="subject" required>
+        <button type="submit">Start Attendance</button>
+    </form>
+    <button onclick="window.location.href='/'">Back to Home</button>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Feed</title>
+    <link rel="stylesheet" href="static\attendance.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Feed</h1>
+        <input type="text" id="subject" placeholder="Enter Subject">
+        <div id="video-container">
+            <video id="video" autoplay></video>
+        </div>
+        <button id="take_attendance" class="btn">Take Attendance</button>
+        <button id="stop_attendance" class="btn">Stop</button>
+        <div id="attendance_messages"></div>
+        <div id="captured_images"></div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                window.localStream = stream; // make stream available to console
+            });
+
+        document.getElementById('take_attendance').addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            const subject = document.getElementById('subject').value;
+
+            fetch('/save_attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `image_data=${encodeURIComponent(dataURL)}&subject=${encodeURIComponent(subject)}`,
+            }).then(response => response.json())
+              .then(data => {
+                  // Display the processed image below the video feed
+                  const img = document.createElement('img');
+                  img.src = `data:image/jpeg;base64,${data.image_data}`;
+                  const capturedImages = document.getElementById('captured_images');
+                  capturedImages.appendChild(img);
+
+                  // Display attendance messages
+                  const attendanceMessages = document.getElementById('attendance_messages');
+                  attendanceMessages.innerHTML = ''; // Clear previous messages
+                  for (const name in data.attendance) {
+                      const message = document.createElement('p');
+                      message.textContent = `Status: ${data.attendance[name]}`;
+                      attendanceMessages.appendChild(message);
+                  }
+              });
+        });
+
+        document.getElementById('stop_attendance').addEventListener('click', () => {
+            // Stop the video stream
+            const stream = window.localStream;
+            const tracks = stream.getTracks();
+
+            tracks.forEach(track => {
+                track.stop();
+            });
+
+            video.srcObject = null;
+
+            // Redirect to index.html
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>
