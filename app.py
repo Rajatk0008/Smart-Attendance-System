@@ -82,6 +82,9 @@ def save_attendance():
 
     # Workbook handling
     attendance_file = 'attendance_excel.xls'
+    new_sheet = False
+
+
     if os.path.exists(attendance_file):
         rb = xlrd.open_workbook(attendance_file, formatting_info=True)
         wb = xl_copy(rb)
@@ -91,13 +94,20 @@ def save_attendance():
         else:
             sheet = wb.add_sheet(subject)
             row = 1
+            new_sheet = True
     else:
         wb = Workbook()
         sheet = wb.add_sheet(subject)
         row = 1
+        new_sheet = True
+
+    if new_sheet:
         sheet.write(0, 0, 'Name')
         sheet.write(0, 1, str(date.today()))
         sheet.write(0, 2, 'Time')
+
+    if name not in attendance_taken_global:
+        attendance_taken_global[subject] = {}
 
     # Process the frame
     if process_this_frame:
@@ -119,7 +129,8 @@ def save_attendance():
             face_names.append(name)
             current_time = datetime.now().strftime('%H:%M:%S')
             if name != "Unknown":
-                if name not in attendance_taken_global:
+                
+                if name not in attendance_taken_global[subject]:
                     sheet.write(row, 0, name)
                     sheet.write(row, 1, "Present")
                     sheet.write(row, 2, current_time)
